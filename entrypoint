@@ -33,6 +33,21 @@ to_boolean() {
 #
 /update-ssl
 
+MAX_BOOT_DELAY="60"
+if [ -v BOOT_DELAY ] && [[ "${BOOT_DELAY}" =~ ^[0-9]+$ ]] ; then
+	BOOT_DELAY="$(( 10#${BOOT_DELAY} ))"
+	if [ ${BOOT_DELAY} -gt 0 ] ; then
+		[ ${BOOT_DELAY} -gt ${MAX_BOOT_DELAY} ] && BOOT_DELAY=${MAX_BOOT_DELAY}
+		say "Applying a boot delay of ${BOOT_DELAY} seconds"
+		START="$(date +%s)"
+		while true ; do
+			DIFF="$(( $(date +%s) - START ))"
+			[ ${DIFF} -ge ${BOOT_DELAY} ] && break
+			sleep 1 || fail "Boot delay aborted - exiting"
+		done
+	fi
+fi
+
 # Detect if it's been initialized (i.e. if DATA_DIR is empty)
 DATA_COUNT="$(find "${DATA_DIR}" -mindepth 1 | wc -l)"
 if [ "${DATA_COUNT}" -lt 1 ] ; then
@@ -60,21 +75,6 @@ if [ "${DATA_COUNT}" -lt 1 ] ; then
 fi
 
 say "Launching the main process"
-
-MAX_BOOT_DELAY="60"
-if [ -v BOOT_DELAY ] && [[ "${BOOT_DELAY}" =~ ^[0-9]+$ ]] ; then
-	BOOT_DELAY="$(( 10#${BOOT_DELAY} ))"
-	if [ ${BOOT_DELAY} -gt 0 ] ; then
-		[ ${BOOT_DELAY} -gt ${MAX_BOOT_DELAY} ] && BOOT_DELAY=${MAX_BOOT_DELAY}
-		say "Applying a boot delay of ${BOOT_DELAY} seconds"
-		START="$(date +%s)"
-		while true ; do
-			DIFF="$(( $(date +%s) - START ))"
-			[ ${DIFF} -ge ${BOOT_DELAY} ] && break
-			sleep 1 || fail "Boot delay aborted - exiting"
-		done
-	fi
-fi
 
 [ ${#} -gt 0 ] || set -- "start-foreground"
 EXE="${HOME_DIR}/bin/zkServer.sh"
