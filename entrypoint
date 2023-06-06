@@ -1,0 +1,66 @@
+#!/bin/bash
+set -euo pipefail
+
+say() {
+	echo -e "$(date -u -Isec): ${@}"
+}
+
+fail() {
+	say "${@}" 1>&2
+	exit ${EXIT_CODE:-1}
+}
+
+to_boolean() {
+	local RESULT="false"
+	case "${1,,}" in
+		true | t | yes | y | 1 | on | enable | enabled | active ) RESULT="true" ;;
+	esac
+	echo "${RESULT}"
+	return 0
+}
+
+[ -v BASE_DIR ] || BASE_DIR="/app"
+[ -v INIT_DIR ] || INIT_DIR="${BASE_DIR}/init"
+[ -v CONF_DIR ] || CONF_DIR="${BASE_DIR}/conf"
+[ -v DATA_DIR ] || DATA_DIR="${BASE_DIR}/data"
+[ -v LOGS_DIR ] || LOGS_DIR="${BASE_DIR}/logs"
+
+[ -v ZOOCFGDIR ] || ZOOCFGDIR="${CONF_DIR}"
+[ -v ZOO_LOG_DIR ] || ZOO_LOG_DIR="${LOGS_DIR}"
+
+#
+# Update the SSL certificate trusts
+#
+/update-ssl
+
+# Detect if it's been initialized (i.e. if DATA_DIR is empty)
+if [ ! -e "${DATA_DIR}/initialize" ] ; then
+	say "Initializing the instance"
+
+	if [ ! -v MYID ] ; then
+		say "No MYID envvar was given, will attempt to guess it"
+		if [ -v POD_NAME ] ; then
+			[[ "${POD_NAME}" =~ ^.*-([0-9]+)$ ]] || fail "The pod name [${POD_NAME}] doesn't match the pattern for a stateful pod (must end with a number)"
+			# The pod ID is 0-based, so we must increase by one
+			MYID="$(( ${BASH_REMATCH[1]} + 1))"
+		else
+			say "No POD_NAME variable was found, defaulting node ID to 1"
+			MYID="1"
+		fi
+	else
+		[[ "${MYID}" =~ ^[1-9][0-9]*$ ]] || fail "The MYID value [${MYID}] is not a valid number in the range [1..255]"
+	fi
+
+	# Remove leading zeros, just in case
+	MYID="$((10#${MYID}))"
+	[ ${MYID} -ge 1 ] && [ ${MYID} -le 255 ] || fail "The MYID value must be in the range [1..255] (${MYID})"
+
+	zkServer-initialize.sh --myid=${MYID}
+fi
+
+say "Launching the main process"
+
+[ ${#} -gt 0 ] || set -- "start-foreground"
+EXE="${HOME_DIR}/bin/zkServer.sh"
+say "Launching as: ${EXE} ${@@Q}"
+exec "${EXE}" "${@}"
