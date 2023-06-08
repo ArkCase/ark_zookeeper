@@ -76,7 +76,7 @@ fi
 
 say "Launching the main process"
 
-[ -v SERVER_GCFLAGS ] || SERVER_GCFLAGS="-verbose:gc -Xlog:gc+heap=trace -Xlog:gc* -Xlog:age*=debug -Xlog:safepoint -Xlog:gc:'${ZOO_LOG_DIR}/zookeeper-gc.log':uptimemillis:filecount=9,filesize=20M"
+[ -v SERVER_GCFLAGS ] || SERVER_GCFLAGS="-verbose:gc -Xlog:gc+heap=trace -Xlog:gc* -Xlog:age*=debug -Xlog:safepoint -Xlog:gc:${ZOO_LOG_DIR}/zookeeper-gc.log:uptimemillis:filecount=9,filesize=20M"
 
 [ -v SERVER_MEMFLAGS ] || SERVER_MEMFLAGS="-XX:MinRAMPercentage=50 -XX:MaxRAMPercentage=80"
 
