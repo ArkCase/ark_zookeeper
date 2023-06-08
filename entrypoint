@@ -76,6 +76,15 @@ fi
 
 say "Launching the main process"
 
+[ -v SERVER_GCFLAGS ] || SERVER_GCFLAGS="-verbose:gc -XX:+PrintHeapAtGC -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationStoppedTime -Xloggc:'${ZOO_LOG_DIR}/zookeeper-gc.log' -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=9 -XX:GCLogFileSize=20M"
+
+[ -v SERVER_MEMFLAGS ] || SERVER_MEMFLAGS="-XX:MinRAMPercentage=50 -XX:MaxRAMPercentage=80"
+
+[ -v SERVER_JVMFLAGS ] || SERVER_JVMFLAGS="${SERVER_MEMFLAGS} ${SERVER_GCFLAGS}"
+
+# Make sure it's visible downstream
+export SERVER_JVMFLAGS
+
 [ ${#} -gt 0 ] || set -- "start-foreground"
 EXE="${HOME_DIR}/bin/zkServer.sh"
 say "Launching as: ${EXE} ${@@Q}"
