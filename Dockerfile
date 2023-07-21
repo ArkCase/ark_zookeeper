@@ -14,7 +14,7 @@ ARG OS="linux"
 ARG PKG="zookeeper"
 ARG VER="3.8.1"
 ARG BLD="03"
-ARG SRC="http://archive.apache.org/dist/zookeeper/zookeeper-${VER}/apache-zookeeper-${VER}-bin.tar.gz
+ARG SRC="http://archive.apache.org/dist/zookeeper/zookeeper-${VER}/apache-zookeeper-${VER}-bin.tar.gz"
 
 FROM "${PUBLIC_REGISTRY}/${BASE_REPO}:${BASE_TAG}"
 
