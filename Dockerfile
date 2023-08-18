@@ -13,7 +13,7 @@ ARG ARCH="amd64"
 ARG OS="linux"
 ARG PKG="zookeeper"
 ARG VER="3.8.2"
-ARG BLD="04"
+ARG BLD="01"
 ARG SRC="http://archive.apache.org/dist/zookeeper/zookeeper-${VER}/apache-zookeeper-${VER}-bin.tar.gz"
 
 FROM "${PUBLIC_REGISTRY}/${BASE_REPO}:${BASE_TAG}"
