@@ -8,12 +8,12 @@
 
 ARG PUBLIC_REGISTRY="public.ecr.aws"
 ARG BASE_REPO="arkcase/base"
-ARG BASE_TAG="8.7.0"
+ARG BASE_TAG="8.8-01"
 ARG ARCH="amd64"
 ARG OS="linux"
 ARG PKG="zookeeper"
-ARG VER="3.8.1"
-ARG BLD="03"
+ARG VER="3.8.2"
+ARG BLD="04"
 ARG SRC="http://archive.apache.org/dist/zookeeper/zookeeper-${VER}/apache-zookeeper-${VER}-bin.tar.gz"
 
 FROM "${PUBLIC_REGISTRY}/${BASE_REPO}:${BASE_TAG}"
@@ -84,11 +84,6 @@ RUN curl -o zookeeper.tar.gz "${SRC}" && \
 
 COPY --chown=root:root entrypoint /
 RUN chmod 755 /entrypoint
-
-COPY --chown=root:root update-ssl /
-COPY --chown=root:root 00-update-ssl /etc/sudoers.d
-RUN chmod 0640 /etc/sudoers.d/00-update-ssl && \
-    sed -i -e "s;\${ACM_GROUP};${APP_GROUP};g" /etc/sudoers.d/00-update-ssl
 
 #################
 # Configure Solr

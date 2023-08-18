@@ -31,7 +31,7 @@ to_boolean() {
 #
 # Update the SSL certificate trusts
 #
-/update-ssl
+acme-init
 
 MAX_BOOT_DELAY="60"
 if [ -v BOOT_DELAY ] && [[ "${BOOT_DELAY}" =~ ^[0-9]+$ ]] ; then
@@ -79,6 +79,9 @@ say "Launching the main process"
 [ -v SERVER_MEMFLAGS ] || SERVER_MEMFLAGS="-XX:MinRAMPercentage=50 -XX:MaxRAMPercentage=80"
 
 [ -v SERVER_JVMFLAGS ] || SERVER_JVMFLAGS="${SERVER_MEMFLAGS} ${SERVER_GCFLAGS}"
+
+# Add the SSL settings
+SERVER_JVMFLAGS+=" -Dzookeeper.serverCnxnFactory=org.apache.zookeeper.server.NettyServerCnxnFactory -Dzookeeper.ssl.keyStore.location=/.ssl/keystore.pkcs12 -Dzookeeper.ssl.keyStore.password=$(</.ssl/keystore.pass) -Dzookeeper.ssl.quorum.keyStore.location=/.ssl/keystore.pkcs12 -Dzookeeper.ssl.quorum.keyStore.password=$(</.ssl/keystore.pass) -Dzookeeper.ssl.quorum.hostnameVerification=false"
 
 # Make sure it's visible downstream
 export SERVER_JVMFLAGS
