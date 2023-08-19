@@ -81,7 +81,7 @@ say "Launching the main process"
 [ -v SERVER_JVMFLAGS ] || SERVER_JVMFLAGS="${SERVER_MEMFLAGS} ${SERVER_GCFLAGS}"
 
 # Add the SSL settings
-SERVER_JVMFLAGS+=" -Dzookeeper.serverCnxnFactory=org.apache.zookeeper.server.NettyServerCnxnFactory -Dzookeeper.ssl.keyStore.location=/.ssl/keystore.pkcs12 -Dzookeeper.ssl.keyStore.password=$(</.ssl/keystore.pass) -Dzookeeper.ssl.quorum.keyStore.location=/.ssl/keystore.pkcs12 -Dzookeeper.ssl.quorum.keyStore.password=$(</.ssl/keystore.pass) -Dzookeeper.ssl.quorum.hostnameVerification=false"
+SERVER_JVMFLAGS+=" -Dzookeeper.serverCnxnFactory=org.apache.zookeeper.server.NettyServerCnxnFactory -Dzookeeper.ssl.keyStore.location=/.ssl/keystore.pkcs12 -Dzookeeper.ssl.keyStore.password=$(</.ssl/keystore.pass) -Dzookeeper.ssl.keyStore.type=PKCS12 -Dzookeeper.ssl.quorum.keyStore.location=/.ssl/keystore.pkcs12 -Dzookeeper.ssl.quorum.keyStore.password=$(</.ssl/keystore.pass) -Dzookeeper.ssl.quorum.keyStore.type=PKCS12 -Dzookeeper.ssl.quorum.hostnameVerification=false"
 
 # Make sure it's visible downstream
 export SERVER_JVMFLAGS
