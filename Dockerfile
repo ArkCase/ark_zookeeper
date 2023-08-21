@@ -33,8 +33,7 @@ ARG DATA_DIR="${BASE_DIR}/data"
 ARG LOGS_DIR="${BASE_DIR}/logs"
 ARG CONF_DIR="${BASE_DIR}/conf"
 
-RUN yum -y update && \
-    yum -y install \
+RUN yum -y install \
         java-11-openjdk-devel \
         lsof \
         sudo \
