@@ -10,7 +10,7 @@ ARG PUBLIC_REGISTRY="public.ecr.aws"
 ARG ARCH="amd64"
 ARG OS="linux"
 ARG PKG="zookeeper"
-ARG VER="3.8.3"
+ARG VER="3.8.4"
 ARG SRC="https://archive.apache.org/dist/zookeeper/zookeeper-${VER}/apache-zookeeper-${VER}-bin.tar.gz"
 
 ARG BASE_REPO="arkcase/base"
