@@ -1,52 +1,21 @@
 #!/bin/bash
+
 set -euo pipefail
+. /.functions
 
-say() {
-	echo -e "$(date -u -Isec): ${@}"
-}
+set_or_default BASE_DIR "/app"
+set_or_default INIT_DIR "${BASE_DIR}/init"
+set_or_default CONF_DIR "${BASE_DIR}/conf"
+set_or_default DATA_DIR "${BASE_DIR}/data"
+set_or_default LOGS_DIR "${BASE_DIR}/logs"
 
-fail() {
-	say "${@}" 1>&2
-	exit ${EXIT_CODE:-1}
-}
-
-to_boolean() {
-	local RESULT="false"
-	case "${1,,}" in
-		true | t | yes | y | 1 | on | enable | enabled | active ) RESULT="true" ;;
-	esac
-	echo "${RESULT}"
-	return 0
-}
-
-[ -v BASE_DIR ] || BASE_DIR="/app"
-[ -v INIT_DIR ] || INIT_DIR="${BASE_DIR}/init"
-[ -v CONF_DIR ] || CONF_DIR="${BASE_DIR}/conf"
-[ -v DATA_DIR ] || DATA_DIR="${BASE_DIR}/data"
-[ -v LOGS_DIR ] || LOGS_DIR="${BASE_DIR}/logs"
-
-[ -v ZOOCFGDIR ] || ZOOCFGDIR="${CONF_DIR}"
-[ -v ZOO_LOG_DIR ] || ZOO_LOG_DIR="${LOGS_DIR}"
+set_or_default ZOOCFGDIR "${CONF_DIR}"
+set_or_default ZOO_LOG_DIR "${LOGS_DIR}"
 
 #
 # Update the SSL certificate trusts
 #
-acme-init
-
-MAX_BOOT_DELAY="60"
-if [ -v BOOT_DELAY ] && [[ "${BOOT_DELAY}" =~ ^[0-9]+$ ]] ; then
-	BOOT_DELAY="$(( 10#${BOOT_DELAY} ))"
-	if [ ${BOOT_DELAY} -gt 0 ] ; then
-		[ ${BOOT_DELAY} -gt ${MAX_BOOT_DELAY} ] && BOOT_DELAY=${MAX_BOOT_DELAY}
-		say "Applying a boot delay of ${BOOT_DELAY} seconds"
-		START="$(date +%s)"
-		while true ; do
-			DIFF="$(( $(date +%s) - START ))"
-			[ ${DIFF} -ge ${BOOT_DELAY} ] && break
-			sleep 1 || fail "Boot delay aborted - exiting"
-		done
-	fi
-fi
+init_ssl
 
 # Detect if it's been initialized (i.e. if DATA_DIR contains no files)
 DATA_COUNT="$(find "${DATA_DIR}" -type f | wc -l)"
@@ -74,11 +43,11 @@ fi
 
 say "Launching the main process"
 
-[ -v SERVER_GCFLAGS ] || SERVER_GCFLAGS="-verbose:gc -Xlog:gc+heap=trace -Xlog:gc* -Xlog:age*=debug -Xlog:safepoint -Xlog:gc:${ZOO_LOG_DIR}/zookeeper-gc.log:uptimemillis:filecount=9,filesize=20M"
+set_or_default SERVER_GCFLAGS "-verbose:gc -Xlog:gc+heap=trace -Xlog:gc* -Xlog:age*=debug -Xlog:safepoint -Xlog:gc:${ZOO_LOG_DIR}/zookeeper-gc.log:uptimemillis:filecount=9,filesize=20M"
 
-[ -v SERVER_MEMFLAGS ] || SERVER_MEMFLAGS="-XX:MinRAMPercentage=50 -XX:MaxRAMPercentage=80"
+set_or_default SERVER_MEMFLAGS "-XX:MinRAMPercentage=50 -XX:MaxRAMPercentage=80"
 
-[ -v SERVER_JVMFLAGS ] || SERVER_JVMFLAGS="${SERVER_MEMFLAGS} ${SERVER_GCFLAGS}"
+set_or_default SERVER_JVMFLAGS "${SERVER_MEMFLAGS} ${SERVER_GCFLAGS}"
 
 # Add the SSL settings
 SERVER_JVMFLAGS+=" -Dzookeeper.serverCnxnFactory=org.apache.zookeeper.server.NettyServerCnxnFactory -Dzookeeper.ssl.keyStore.location=/.ssl/keystore.pkcs12 -Dzookeeper.ssl.keyStore.password=$(</.ssl/keystore.pass) -Dzookeeper.ssl.keyStore.type=PKCS12 -Dzookeeper.ssl.quorum.keyStore.location=/.ssl/keystore.pkcs12 -Dzookeeper.ssl.quorum.keyStore.password=$(</.ssl/keystore.pass) -Dzookeeper.ssl.quorum.keyStore.type=PKCS12 -Dzookeeper.ssl.quorum.hostnameVerification=false"
@@ -87,6 +56,4 @@ SERVER_JVMFLAGS+=" -Dzookeeper.serverCnxnFactory=org.apache.zookeeper.server.Net
 export SERVER_JVMFLAGS
 
 [ ${#} -gt 0 ] || set -- "start-foreground"
-EXE="${HOME_DIR}/bin/zkServer.sh"
-say "Launching as: ${EXE} ${@@Q}"
-exec "${EXE}" "${@}"
+execute "${HOME_DIR}/bin/zkServer.sh" "${@}"
