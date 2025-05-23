@@ -11,10 +11,11 @@ ARG ARCH="amd64"
 ARG OS="linux"
 ARG PKG="zookeeper"
 ARG VER="3.8.4"
+ARG JAVA="11"
 ARG SRC="https://archive.apache.org/dist/zookeeper/zookeeper-${VER}/apache-zookeeper-${VER}-bin.tar.gz"
 
 ARG BASE_REGISTRY="${PUBLIC_REGISTRY}"
-ARG BASE_REPO="arkcase/base"
+ARG BASE_REPO="arkcase/base-java"
 ARG BASE_VER="8"
 ARG BASE_VER_PFX=""
 ARG BASE_IMG="${BASE_REGISTRY}/${BASE_REPO}:${BASE_VER_PFX}${BASE_VER}"
@@ -25,6 +26,7 @@ ARG ARCH
 ARG OS
 ARG PKG
 ARG VER
+ARG JAVA
 ARG SRC
 ARG APP_UID="2000"
 ARG APP_GID="${APP_UID}"
@@ -36,11 +38,11 @@ ARG DATA_DIR="${BASE_DIR}/data"
 ARG LOGS_DIR="${BASE_DIR}/logs"
 ARG CONF_DIR="${BASE_DIR}/conf"
 
-RUN yum -y install \
-        java-11-openjdk-devel \
+RUN set-java "${JAVA}" && \
+    yum -y install \
         lsof \
         sudo \
-    && \
+      && \
     yum -y clean all
 
 LABEL ORG="ArkCase LLC" \
@@ -53,7 +55,6 @@ ENV APP_UID="${APP_UID}" \
     APP_GID="${APP_GID}" \
     APP_USER="${APP_USER}" \
     APP_GROUP="${APP_GROUP}" \
-    JAVA_HOME="/usr/lib/jvm/java" \
     LANG="en_US.UTF-8" \
     LANGUAGE="en_US:en" \
     LC_ALL="en_US.UTF-8" \
