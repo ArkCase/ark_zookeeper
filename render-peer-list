@@ -18,11 +18,15 @@ eyes "Fetching the server peer list (${FQSN})"
 readarray -t SERVERS < <(dig +short -t SRV "${FQSN}" | sort -k 4)
 
 SERVER_FILE="${CONF_DIR}/zookeeper-servers.cfg.dynamic"
-(( I=0 )) || true
 :> "${SERVER_FILE}"
 for SERVER in "${SERVERS[@]}" ; do
 	read PRIORITY WEIGHT PORT TARGET <<< "${SERVER}"
-	ok "Found server [${TARGET}]"
-	echo "server.${I}=${TARGET}:2888:3888:participant;${PORT}" >> "${SERVER_FILE}"
-	(( ++I ))
+	IFS="." read BASENAME REST <<< "${TARGET}"
+	if [[ "${BASENAME}" =~ ^.*-([0-9]+)$ ]] ; then
+		SERVER_ID="$(( ${BASH_REMATCH[1]} + 1 ))"
+		ok "Found server # ${SERVER_ID} = [${TARGET}]"
+		echo "server.${SERVER_ID}=${TARGET}:2888:3888:participant;${PORT}" >> "${SERVER_FILE}"
+	else
+		err "The server [${SERVER}] is not a valid stateful pod name (must end with a number), ignoring it!"
+	fi
 done
