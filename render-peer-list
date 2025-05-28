@@ -1,0 +1,28 @@
+#!/bin/bash
+
+set -euo pipefail
+. /.functions
+
+set_or_default BASE_DIR "/app"
+set_or_default CONF_DIR "${BASE_DIR}/conf"
+
+set_or_default ZOOCFGDIR "${CONF_DIR}"
+
+FQSN="_${DNS_PORT}._tcp.${DNS_SERVICE}.${DNS_NAMESPACE}.svc."
+
+CLUSTER_DOMAIN="$(get_cluster_domain)" || fail "Could not compute the cluster domain"
+[ -n "${CLUSTER_DOMAIN}" ] && FQSN+="${CLUSTER_DOMAIN}."
+
+eyes "Fetching the server peer list (${FQSN})"
+
+readarray -t SERVERS < <(dig +short -t SRV "${FQSN}" | sort -k 4)
+
+SERVER_FILE="${CONF_DIR}/zookeeper-servers.cfg.dynamic"
+(( I=0 )) || true
+:> "${SERVER_FILE}"
+for SERVER in "${SERVERS[@]}" ; do
+	read PRIORITY WEIGHT PORT TARGET <<< "${SERVER}"
+	ok "Found server [${TARGET}]"
+	echo "server.${I}=${TARGET}:2888:3888:participant;${PORT}" >> "${SERVER_FILE}"
+	(( ++I ))
+done

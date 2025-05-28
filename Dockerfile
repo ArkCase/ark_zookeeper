@@ -40,6 +40,7 @@ ARG CONF_DIR="${BASE_DIR}/conf"
 
 RUN set-java "${JAVA}" && \
     yum -y install \
+        bind-utils \
         lsof \
         sudo \
       && \
@@ -87,6 +88,9 @@ RUN curl -o zookeeper.tar.gz "${SRC}" && \
 
 COPY --chown=root:root entrypoint /
 RUN chmod 755 /entrypoint
+
+COPY --chown=root:root render-peer-list /usr/local/bin
+RUN chmod 755 /usr/local/bin/render-peer-list
 
 #################
 # Configure Solr
