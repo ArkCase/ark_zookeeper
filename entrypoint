@@ -41,6 +41,8 @@ if [ "${DATA_COUNT}" -lt 1 ] ; then
 	zkServer-initialize.sh --force --myid=${MYID}
 fi
 
+render-peer-list
+
 say "Launching the main process"
 
 set_or_default SERVER_GCFLAGS "-verbose:gc -Xlog:gc+heap=trace -Xlog:gc* -Xlog:age*=debug -Xlog:safepoint -Xlog:gc:${ZOO_LOG_DIR}/zookeeper-gc.log:uptimemillis:filecount=9,filesize=20M"
