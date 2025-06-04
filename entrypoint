@@ -17,6 +17,11 @@ set_or_default ZOO_LOG_DIR "${LOGS_DIR}"
 #
 init_ssl
 
+#
+# Next, set the Java version
+#
+set-java
+
 # Detect if it's been initialized (i.e. if DATA_DIR contains no files)
 DATA_COUNT="$(find "${DATA_DIR}" -type f | wc -l)"
 if [ "${DATA_COUNT}" -lt 1 ] ; then
