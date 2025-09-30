@@ -10,7 +10,7 @@ ARG PUBLIC_REGISTRY="public.ecr.aws"
 ARG ARCH="amd64"
 ARG OS="linux"
 ARG PKG="zookeeper"
-ARG VER="3.8.4"
+ARG VER="3.8.5"
 ARG JAVA="11"
 ARG SRC="https://archive.apache.org/dist/zookeeper/zookeeper-${VER}/apache-zookeeper-${VER}-bin.tar.gz"
 
@@ -86,11 +86,9 @@ RUN curl -o zookeeper.tar.gz "${SRC}" && \
     chown -R "${APP_USER}:${APP_GROUP}" "${HOME_DIR}" "${CONF_DIR}" "${DATA_DIR}" "${LOGS_DIR}" && \
     chmod -R u=rwX,g=rwX,o= "${HOME_DIR}" "${CONF_DIR}" "${DATA_DIR}" "${LOGS_DIR}"
 
-COPY --chown=root:root entrypoint /
-RUN chmod 755 /entrypoint
+COPY --chown=root:root --chmod=0755 entrypoint /
 
-COPY --chown=root:root render-peer-list /usr/local/bin
-RUN chmod 755 /usr/local/bin/render-peer-list
+COPY --chown=root:root --chmod=0755 render-peer-list /usr/local/bin
 
 #################
 # Configure Solr
