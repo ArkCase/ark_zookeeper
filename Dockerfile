@@ -90,8 +90,8 @@ COPY --chown=root:root --chmod=0755 entrypoint /
 
 COPY --chown=root:root --chmod=0755 render-peer-list /usr/local/bin
 
-COPY --chown=root:root --chmod=0755 CVE-2025-58057 /
-RUN /CVE-2025-58057 && rm -rvf /CVE-2025-58057
+COPY --chown=root:root --chmod=0755 CVE /CVE
+RUN apply-fixes /CVE
 
 #################
 # Configure Solr
