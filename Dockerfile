@@ -45,10 +45,7 @@ ENV APP_UID="${APP_UID}" \
     APP_GID="${APP_GID}" \
     APP_USER="${APP_USER}" \
     APP_GROUP="${APP_GROUP}"
-ENV HOME_DIR="${BASE_DIR}/${PKG}" \
-    DATA_DIR="${BASE_DIR}/data" \
-    LOGS_DIR="${BASE_DIR}/logs" \
-    CONF_DIR="${BASE_DIR}/conf"
+ENV HOME_DIR="${BASE_DIR}/${PKG}"
 ENV ZOOCFGDIR="${CONF_DIR}" \
     ZOO_LOG_DIR="${LOGS_DIR}"
 ENV PATH="${HOME_DIR}/bin:${PATH}"
@@ -62,7 +59,7 @@ RUN set-java "${JAVA}" && \
 RUN groupadd --system --gid "${APP_GID}" "${APP_GROUP}" && \
     useradd  --system --uid "${APP_UID}" --gid "${APP_GROUP}" --group "${ACM_GROUP}" --create-home --home-dir "${HOME_DIR}" "${APP_USER}"
 
-RUN apache-download "${SRC}" "${KEYS}" "/zookeeper.tar.gz" && \
+RUN verified-download --keys "${KEYS}" "${SRC}" "/zookeeper.tar.gz" && \
     tar -C "${HOME_DIR}" --strip-components=1 -xzvf "/zookeeper.tar.gz" && \
     rm -f "/zookeeper.tar.gz" && \
     mkdir -p "${CONF_DIR}" "${DATA_DIR}" "${LOGS_DIR}"
