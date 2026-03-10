@@ -73,7 +73,8 @@ RUN apply-fixes /CVE
 
 RUN rm -rf /tmp/* && \
     chown -R "${APP_USER}:${APP_GROUP}" "${BASE_DIR}" && \
-    chmod -R u=rwX,g=rX,o= "${BASE_DIR}"
+    chmod -R u=rwX,g=rX,o= "${BASE_DIR}" && \
+    chown root "${HOME_DIR}/bin"
 
 #################
 # Configure Solr
