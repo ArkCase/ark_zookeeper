@@ -10,7 +10,7 @@ ARG PUBLIC_REGISTRY="public.ecr.aws"
 ARG ARCH="amd64"
 ARG OS="linux"
 ARG PKG="zookeeper"
-ARG VER="3.8.6"
+ARG VER="3.9.5"
 ARG JAVA="11"
 ARG KEYS="https://downloads.apache.org/zookeeper/KEYS"
 ARG SRC="https://archive.apache.org/dist/zookeeper/zookeeper-${VER}/apache-zookeeper-${VER}-bin.tar.gz"
@@ -73,7 +73,8 @@ RUN apply-fixes /CVE
 
 RUN rm -rf /tmp/* && \
     chown -R "${APP_USER}:${APP_GROUP}" "${BASE_DIR}" && \
-    chmod -R u=rwX,g=rX,o= "${BASE_DIR}"
+    chmod -R u=rwX,g=rX,o= "${BASE_DIR}" && \
+    chown root "${HOME_DIR}/bin"
 
 #################
 # Configure Solr
