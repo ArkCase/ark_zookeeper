@@ -57,10 +57,33 @@ set_or_default SERVER_MEMFLAGS "-XX:MinRAMPercentage=50 -XX:MaxRAMPercentage=80"
 set_or_default SERVER_JVMFLAGS "${SERVER_MEMFLAGS} ${SERVER_GCFLAGS}"
 
 # Add the SSL settings
-SERVER_JVMFLAGS+=" -Dzookeeper.serverCnxnFactory=org.apache.zookeeper.server.NettyServerCnxnFactory -Dzookeeper.ssl.keyStore.location=/.ssl/keystore.pkcs12 -Dzookeeper.ssl.keyStore.password=$(</.ssl/keystore.pass) -Dzookeeper.ssl.keyStore.type=PKCS12 -Dzookeeper.ssl.quorum.keyStore.location=/.ssl/keystore.pkcs12 -Dzookeeper.ssl.quorum.keyStore.password=$(</.ssl/keystore.pass) -Dzookeeper.ssl.quorum.keyStore.type=PKCS12 -Dzookeeper.ssl.quorum.hostnameVerification=false"
+SSL_FLAGS=(
+	-DauthProvider.x509="org.apache.zookeeper.server.auth.X509AuthenticationProvider"
+	-Dzookeeper.serverCnxnFactory="org.apache.zookeeper.server.NettyServerCnxnFactory"
+	-Dzookeeper.ssl.authProvider="x509"
 
+	-Dzookeeper.ssl.hostnameVerification="true"
+	-Dzookeeper.ssl.protocol="TLSv1.3"
+	-Dzookeeper.ssl.enabledProtocols="TLSv1.3"
+	-Dzookeeper.ssl.keyStore.location="${SSL_DIR}/keystore.pkcs12"
+	-Dzookeeper.ssl.keyStore.passwordPath="${SSL_DIR}/keystore.pass"
+	-Dzookeeper.ssl.keyStore.type="PKCS12"
+	-Dzookeeper.ssl.trustStore.location="${SSL_DIR}/keystore.pkcs12"
+	-Dzookeeper.ssl.trustStore.passwordPath="${SSL_DIR}/keystore.pass"
+	-Dzookeeper.ssl.trustStore.type="PKCS12"
+
+	-Dzookeeper.ssl.quorum.hostnameVerification="true"
+	-Dzookeeper.ssl.quorum.protocol="TLSv1.3"
+	-Dzookeeper.ssl.quorum.enabledProtocols="TLSv1.3"
+	-Dzookeeper.ssl.quorum.keyStore.location="${SSL_DIR}/keystore.pkcs12"
+	-Dzookeeper.ssl.quorum.keyStore.passwordPath="${SSL_DIR}/keystore.pass"
+	-Dzookeeper.ssl.quorum.keyStore.type="PKCS12"
+	-Dzookeeper.ssl.quorum.trustStore.location="${SSL_DIR}/keystore.pkcs12"
+	-Dzookeeper.ssl.quorum.trustStore.passwordPath="${SSL_DIR}/keystore.pass"
+	-Dzookeeper.ssl.quorum.trustStore.type="PKCS12"
+)
 # Make sure it's visible downstream
-export SERVER_JVMFLAGS
+export SERVER_JVMFLAGS+=" ${SSL_FLAGS[@]}"
 
 [ ${#} -gt 0 ] || set -- "start-foreground"
 execute "${HOME_DIR}/bin/zkServer.sh" "${@}"
