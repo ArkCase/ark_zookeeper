@@ -12,7 +12,7 @@ ARG ARCH="amd64"
 ARG OS="linux"
 ARG PKG="zookeeper"
 ARG VER="3.9.5"
-ARG JAVA="11"
+ARG JAVA="17"
 ARG KEYS="https://downloads.apache.org/zookeeper/KEYS"
 ARG SRC="https://archive.apache.org/dist/zookeeper/zookeeper-${VER}/apache-zookeeper-${VER}-bin.tar.gz"
 
@@ -24,6 +24,7 @@ ARG BASE_IMG="${BASE_REGISTRY}/${BASE_REPO}${FIPS}:${BASE_VER_PFX}${BASE_VER}"
 
 FROM "${BASE_IMG}"
 
+ARG FIPS
 ARG ARCH
 ARG OS
 ARG PKG
@@ -68,6 +69,8 @@ RUN verified-download --keys "${KEYS}" "${SRC}" "/zookeeper.tar.gz" && \
 COPY --chown=root:root --chmod=0755 entrypoint /
 
 COPY --chown=root:root --chmod=0755 render-peer-list /usr/local/bin
+
+RUN export APP_LIB_DIRS="${HOME_DIR}/lib" && deploy-fips-crypto
 
 COPY --chown=root:root --chmod=0755 CVE /CVE
 RUN apply-fixes /CVE

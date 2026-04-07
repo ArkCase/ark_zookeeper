@@ -15,7 +15,23 @@ set_or_default DATA_DIR "${BASE_DIR}/data"
 set_or_default LOGS_DIR "${BASE_DIR}/logs"
 
 set_or_default ZOOCFGDIR "${CONF_DIR}"
+set_or_default ZOOCFG "${ZOOCFGDIR}/zoo.cfg"
 set_or_default ZOO_LOG_DIR "${LOGS_DIR}"
+
+set_or_default ZOOCFG_TPL "${ZOOCFG}.tpl"
+if ! is_file "${ZOOCFG}" ; then
+	warn "No configuration found at ${ZOOCFG@Q}, will attempt to render it from the template (${ZOOCFG_TPL})"
+	require_file_readable "${ZOOCFG_TPL}"
+
+	TGT_DIR="$(dirname "${ZOOCFG}")"
+	require_dir_writable "${TGT_DIR}"
+
+	as_boolean "${FIPS}" && ZOOKEEPER_HOSTNAME_VERIFICATION="false" || ZOOKEEPER_HOSTNAME_VERIFICATION="true"
+	export ZOOKEEPER_HOSTNAME_VERIFICATION
+
+	envsubst < "${ZOOCFG_TPL}" > "${ZOOCFG}" || fail "Failed to render the configuration from [${ZOOCFG_TPL}] (rc=${?})"
+	ok "Configuration rendered!"
+fi
 
 # Detect if it's been initialized (i.e. if DATA_DIR contains no files)
 DATA_COUNT="$(find "${DATA_DIR}" -type f | wc -l)"
@@ -46,42 +62,10 @@ render-peer-list
 say "Launching the main process"
 
 set_or_default SERVER_GCFLAGS "-verbose:gc -Xlog:gc+heap=trace -Xlog:gc* -Xlog:age*=debug -Xlog:safepoint -Xlog:gc:${ZOO_LOG_DIR}/zookeeper-gc.log:uptimemillis:filecount=9,filesize=20M"
-
 set_or_default SERVER_MEMFLAGS "-XX:MinRAMPercentage=50 -XX:MaxRAMPercentage=80"
 set_or_default SERVER_JVMFLAGS "${SERVER_MEMFLAGS} ${SERVER_GCFLAGS}"
 
 # Make sure it's visible downstream
 export SERVER_JVMFLAGS
-
-#
-# Add the ZooKeeper client options
-#
-. /usr/local/bin/zk-client-init
-
-set_or_default ZOOKEEPER_SSL_COMMON_OPTIONS
-[ -n "${ZOOKEEPER_SSL_COMMON_OPTIONS}" ] && SERVER_JVMFLAGS+=" ${ZOOKEEPER_SSL_COMMON_OPTIONS}"
-
-# Add the SSL settings
-SSL_OPTS=(
-	-DauthProvider.x509="org.apache.zookeeper.server.auth.X509AuthenticationProvider"
-	-Dzookeeper.serverCnxnFactory="org.apache.zookeeper.server.NettyServerCnxnFactory"
-
-	-Dzookeeper.ssl.authProvider="x509"
-
-	-Dzookeeper.ssl.quorum.hostnameVerification="${ZOOKEEPER_HOSTNAME_VERIFICATION}"
-	-Dzookeeper.ssl.quorum.protocol="${ZOOKEEPER_PROTOCOL}"
-	-Dzookeeper.ssl.quorum.enabledProtocols="${ZOOKEEPER_ENABLED_PROTOCOLS}"
-
-	-Dzookeeper.ssl.quorum.keyStore.location="${JAVA_KEYSTORE}"
-	-Dzookeeper.ssl.quorum.keyStore.passwordPath="${JAVA_KEYSTORE_PASSWORD_FILE}"
-	-Dzookeeper.ssl.quorum.keyStore.type="${JAVA_KEYSTORE_TYPE}"
-
-	-Dzookeeper.ssl.quorum.trustStore.location="${JAVA_TRUSTSTORE}"
-	-Dzookeeper.ssl.quorum.trustStore.passwordPath="${JAVA_TRUSTSTORE_PASSWORD_FILE}"
-	-Dzookeeper.ssl.quorum.trustStore.type="${JAVA_TRUSTSTORE_TYPE}"
-)
-SERVER_JVMFLAGS+=" ${SSL_OPTS[@]}"
-unset SSL_OPTS
-
 [ ${#} -gt 0 ] || set -- "start-foreground"
 execute "${HOME_DIR}/bin/zkServer.sh" "${@}"
