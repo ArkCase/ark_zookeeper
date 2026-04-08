@@ -70,8 +70,6 @@ COPY --chown=root:root --chmod=0755 entrypoint /
 
 COPY --chown=root:root --chmod=0755 render-peer-list /usr/local/bin
 
-RUN export APP_LIB_DIRS="${HOME_DIR}/lib" && deploy-fips-crypto
-
 COPY --chown=root:root --chmod=0755 CVE /CVE
 RUN apply-fixes /CVE
 
