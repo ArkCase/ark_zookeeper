@@ -70,8 +70,7 @@ COPY --chown=root:root --chmod=0755 entrypoint /
 
 COPY --chown=root:root --chmod=0755 render-peer-list /usr/local/bin
 
-COPY --chown=root:root --chmod=0755 CVE /CVE
-RUN apply-fixes /CVE
+RUN --mount=type=bind,source=CVE,target=/CVE apply-fixes /CVE
 
 RUN rm -rf /tmp/* && \
     chown -R "${APP_USER}:${APP_GROUP}" "${BASE_DIR}" && \
