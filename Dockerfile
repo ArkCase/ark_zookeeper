@@ -14,6 +14,7 @@ ARG PKG="zookeeper"
 ARG VER="3.9.6"
 ARG JAVA="17"
 ARG KEYS="https://dlcdn.apache.org/zookeeper/KEYS"
+ARG SIGNER="@apache[.]org$"
 ARG SRC="https://dlcdn.apache.org/zookeeper/zookeeper-${VER}/apache-zookeeper-${VER}-bin.tar.gz"
 
 ARG BASE_REGISTRY="${PUBLIC_REGISTRY}"
@@ -31,6 +32,7 @@ ARG PKG
 ARG VER
 ARG JAVA
 ARG KEYS
+ARG SIGNER
 ARG SRC
 ARG APP_UID="2000"
 ARG APP_GID="${APP_UID}"
@@ -61,7 +63,7 @@ RUN set-java "${JAVA}" && \
 RUN groupadd --system --gid "${APP_GID}" "${APP_GROUP}" && \
     useradd  --system --uid "${APP_UID}" --gid "${APP_GROUP}" --group "${ACM_GROUP}" --create-home --home-dir "${HOME_DIR}" "${APP_USER}"
 
-RUN verified-download --keys "${KEYS}" "${SRC}" "/zookeeper.tar.gz" && \
+RUN verified-download --keys "${KEYS}" --signer "${SIGNER}" "${SRC}" "/zookeeper.tar.gz" && \
     tar -C "${HOME_DIR}" --strip-components=1 -xzvf "/zookeeper.tar.gz" && \
     rm -f "/zookeeper.tar.gz" && \
     mkdir -p "${CONF_DIR}" "${DATA_DIR}" "${LOGS_DIR}"
