@@ -15,7 +15,8 @@ CLUSTER_DOMAIN="$(get_cluster_domain)" || fail "Could not compute the cluster do
 
 eyes "Fetching the server peer list (${FQSN})"
 
-readarray -t SERVERS < <(dig +short -t SRV "${FQSN}" | sort -k 4)
+OUT="$(dig +short -t SRV "${FQSN}")" || fail "Failed to fetch the server peer list from DNS (rc=${?}): ${OUT}"
+readarray -t SERVERS < <(echo -n "${OUT}" | sort -k 4)
 
 SERVER_FILE="${CONF_DIR}/zookeeper-servers.cfg.dynamic"
 :> "${SERVER_FILE}"
@@ -23,8 +24,7 @@ for SERVER in "${SERVERS[@]}" ; do
 	read PRIORITY WEIGHT PORT TARGET <<< "${SERVER}"
 	IFS="." read BASENAME REST <<< "${TARGET}"
 	if [[ "${BASENAME}" =~ ^.*-([0-9]+)$ ]] ; then
-		SERVER_ID="$(( ${BASH_REMATCH[1]} + 1 ))"
-		SERVER_ID="$(( 10#${SERVER_ID} ))"
+		SERVER_ID="$(( 10#${BASH_REMATCH[1]} + 1 ))"
 		[ ${SERVER_ID} -ge 1 ] && [ ${SERVER_ID} -le 255 ] || fail "The SERVER_ID value must be in the range [1..255] (${SERVER_ID})"
 		ok "Found server # ${SERVER_ID} = [${TARGET}]"
 		echo "server.${SERVER_ID}=${TARGET}:2888:3888:participant;${PORT}" >> "${SERVER_FILE}"

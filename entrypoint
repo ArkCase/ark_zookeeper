@@ -46,7 +46,7 @@ if [ "${DATA_COUNT}" -lt 1 ] ; then
 			POD_NAME="${POD_NAME%%.*}"
 		fi
 		[[ "${POD_NAME}" =~ ^.*-([0-9]+)$ ]] || fail "The pod name [${POD_NAME}] doesn't match the pattern for a stateful pod (must end with a number)"
-		MYID="$(( ${BASH_REMATCH[1]} + 1 ))"
+		MYID="$(( 10#${BASH_REMATCH[1]} + 1 ))"
 	fi
 	[[ "${MYID}" =~ ^[1-9][0-9]*$ ]] || fail "The MYID value [${MYID}] is not a valid number in the range [1..255]"
 
