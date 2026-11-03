@@ -56,27 +56,21 @@ ENV ZOOCFGDIR="${CONF_DIR}" \
     ZOO_LOG_DIR="${LOGS_DIR}"
 ENV PATH="${HOME_DIR}/bin:${PATH}"
 
-RUN set-java "${JAVA}" && \
+RUN --mount=type=bind,target=/src \
+    set-java "${JAVA}" && \
     apt-get -y install \
         lsof \
       && \
-    apt-get clean
-
-RUN groupadd --system --gid "${APP_GID}" "${APP_GROUP}" && \
-    useradd  --system --uid "${APP_UID}" --gid "${APP_GROUP}" --group "${ACM_GROUP}" --create-home --home-dir "${HOME_DIR}" "${APP_USER}"
-
-RUN verified-download --keys "${KEYS}" --signer "${SIGNER}" "${SRC}" "/zookeeper.tar.gz" && \
+    apt-get clean && \
+    groupadd --system --gid "${APP_GID}" "${APP_GROUP}" && \
+    useradd  --system --uid "${APP_UID}" --gid "${APP_GROUP}" --group "${ACM_GROUP}" --create-home --home-dir "${HOME_DIR}" "${APP_USER}" && \
+    verified-download --keys "${KEYS}" --signer "${SIGNER}" "${SRC}" "/zookeeper.tar.gz" && \
     tar -C "${HOME_DIR}" --strip-components=1 -xzvf "/zookeeper.tar.gz" && \
     rm -f "/zookeeper.tar.gz" && \
-    mkdir -p "${CONF_DIR}" "${DATA_DIR}" "${LOGS_DIR}"
-
-COPY --chown=root:root --chmod=0755 entrypoint /
-
-COPY --chown=root:root --chmod=0755 render-peer-list /usr/local/bin
-
-RUN --mount=type=bind,source=CVE,target=/CVE apply-fixes /CVE
-
-RUN rm -rf /tmp/* && \
+    mkdir -p "${CONF_DIR}" "${DATA_DIR}" "${LOGS_DIR}" && \
+    install -o root -g root -m 0755 -t /usr/local/bin /src/entrypoint /src/render-peer-list && \
+    apply-fixes /src/CVE && \
+    rm -rf /tmp/* && \
     chown -R "${APP_USER}:${APP_GROUP}" "${BASE_DIR}" && \
     chmod -R u=rwX,g=rX,o= "${BASE_DIR}" && \
     chown root "${HOME_DIR}/bin"
@@ -89,9 +83,3 @@ USER "${APP_USER}"
 WORKDIR "${HOME_DIR}"
 
 EXPOSE 8983
-
-VOLUME [ "${CONF_DIR}" ]
-VOLUME [ "${DATA_DIR}" ]
-VOLUME [ "${LOGS_DIR}" ]
-
-ENTRYPOINT [ "/entrypoint" ]
